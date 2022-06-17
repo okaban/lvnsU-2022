@@ -41,7 +41,7 @@ def Dimension_Reduction_daily_data(daily_data, save_path):
         tmp_df = df[f_date:f_date + datetime.timedelta(days=1) - datetime.timedelta(minutes=1)] # 1日のFitbitデータとハルシェの体温データが格納される
         tmp_df = tmp_df[tmp_df['value']!=0]
 
-        #=======課題1=======
+        #=======演習1=======
         # df_averageに以下の値を計算し格納せよ
         #   1. df_average['whole average']：各日の心拍数の平均
         #   2. df_average['wake min']：起床時の心拍数の最小値
@@ -50,7 +50,7 @@ def Dimension_Reduction_daily_data(daily_data, save_path):
         #   5. df_average['sleep max']：睡眠時の心拍数の最大値
         #   6. df_average['sleep temp min']：睡眠時の体温の最小値
         #   7. df_average['sleep temp var']：睡眠時の体温の分散値
-        #===ここまでが課題1===
+        #===ここまでが演習1===
 
         f_date += datetime.timedelta(days=1)
     
@@ -64,7 +64,7 @@ def Dimension_Reduction_daily_data(daily_data, save_path):
 
     data_matrix = new_df.values
 
-    #=======課題2=======
+    #=======演習2=======
     # tsneやumapを用いて、data_matrixを2次元のデータに変換し、X_decompに結果を格納せよ。
     # また、次元削減されたデータX_decompを可視化せよ
 
@@ -73,7 +73,7 @@ def Dimension_Reduction_daily_data(daily_data, save_path):
 
     # ここで可視化を実装
 
-    #===ここまでが課題2===
+    #===ここまでが演習2===
 
     plt.tight_layout()
     plt.savefig(os.path.join(save_path, 'dimension_reduction_fig.png'))
@@ -92,14 +92,14 @@ def kmeans_daily_data(df_average, save_path):
     X_decomp[:, 0] = tmp_X1
     X_decomp[:, 1] = tmp_X2
 
-    #=======課題3=======
+    #=======演習3=======
     # 次元削減さらえたデータX_decompを用いて、クラスタリングせよ。
     # なお、クラスタリングにはscikit-learnのK-meansを用いること。
     # また、辞書型の変数label_values_indを以下のように定義せよ。
     # label_values_ind = {0:ラベル0のX_decompの値, 1:ラベル1のX_decompの値}
-    #===ここまでが課題3===
+    #===ここまでが演習3===
 
-    #=======課題4=======
+    #=======演習4=======
     # ここで、matplotlibで散布図を作成し、クラスタごとに点の色を変更せよ。
 
     # クラスタの重心（クラスタ内の座標値の平均）を計算し、クラスタの重心を散布図上に示せ。
@@ -113,7 +113,7 @@ def kmeans_daily_data(df_average, save_path):
             a = 1
             # このfor文内でデータの平均値を導出
         ax.text(x_ind, y_ind, avg_list, size=15,color='#555555') # クラスタの重心の点の近くにテキストを表示
-    #===ここまでが課題4===
+    #===ここまでが演習4===
 
     plt.tight_layout()
     plt.savefig(os.path.join(save_path, 'kmeans_fig.png'))
@@ -185,9 +185,9 @@ def main():
     df_average = Dimension_Reduction_daily_data(data_collection, fig_res)
     df_average = kmeans_daily_data(df_average, fig_res)
 
-    #=======課題5=======
+    #=======演習5=======
     # ここで、df_averageの結果をcsvファイルに格納
-    #===ここまでが課題5===
+    #===ここまでが演習5===
 
 if __name__ == '__main__':
     main()
