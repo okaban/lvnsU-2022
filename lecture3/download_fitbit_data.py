@@ -12,7 +12,7 @@ TOKEN = {
     }
 
 cwd = os.path.split(os.path.dirname(os.path.abspath(__file__)))[0]
-TOKEN_FILE = os.path.join(cwd, 'fitbit_data', TOKEN['USER_ID'] + '.txt')
+TOKEN_FILE = os.path.join(cwd, 'analysis_data', TOKEN['USER_ID'] + '.txt')
 
 def read_token(USER_ID, fpath):
     print('Read Current Token for {}'.format(USER_ID))
@@ -39,7 +39,7 @@ def main():
     CLIENT_SECRET = TOKEN['CLIENT_SECRET']
 
     cwd = os.path.split(os.path.dirname(os.path.abspath(__file__)))[0]
-    analysis_path = os.path.join(cwd, 'fitbit_data')
+    analysis_path = os.path.join(cwd, 'analysis_data')
 
     start_date = datetime(2022, 6, 3) # データを取得開始したい日の日付を入力
     today = datetime.now()
@@ -75,7 +75,7 @@ def main():
                     json.dump(fitbit_data, f, indent=4)
 
         data_sleep = authd_client.sleep(date=DATE)
-        if len(str(fitbit_data)) > 0:
+        if len(str(data_sleep)) > 0:
             save_path = os.path.join(analysis_path, 'activities', USER_ID, 'sleep')
             if not os.path.exists(save_path):
                 os.makedirs(save_path)
