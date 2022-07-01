@@ -6,9 +6,9 @@ import time
 from datetime import datetime, timedelta
 
 TOKEN = {
-    'USER_ID': '',
-    'CLIENT_ID': '',
-    'CLIENT_SECRET': ''
+    'USER_ID': 'B2CPC9',
+    'CLIENT_ID': '238KZ4',
+    'CLIENT_SECRET': '48b4986bc23652a13dcf14662e06226e177eed14'
     }
 
 cwd = os.path.split(os.path.dirname(os.path.abspath(__file__)))[0]

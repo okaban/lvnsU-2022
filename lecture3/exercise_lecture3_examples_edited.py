@@ -1,6 +1,7 @@
+import sys
+print(sys.path)
 import os
 import glob
-from re import I
 import pandas as pd
 import numpy as np
 import natsort
@@ -13,10 +14,8 @@ plt.rcParams["font.family"] = "IPAexGothic"
 from sklearn.manifold import TSNE
 import umap
 from sklearn.cluster import KMeans
-from collections import Counter
-
 import load_data
-
+from collections import Counter
 
 def Dimension_Reduction_daily_data(daily_data, save_path):
 
@@ -38,18 +37,30 @@ def Dimension_Reduction_daily_data(daily_data, save_path):
         date = datetime.datetime(f_date.year, f_date.month, f_date.day)
         df_average['date'].append(date)
 
-        tmp_df = df[f_date:f_date + datetime.timedelta(days=1) - datetime.timedelta(minutes=1)] # 1日のFitbitデータとハルシェの体温データが格納される
+        tmp_df = df[f_date:f_date + datetime.timedelta(days=1) - datetime.timedelta(minutes=1)]
         tmp_df = tmp_df[tmp_df['value']!=0]
 
         #=======演習1=======
-        # df_averageに以下の値を計算し格納せよ
-        #   1. df_average['whole average']：各日の心拍数の平均
-        #   2. df_average['wake min']：起床時の心拍数の最小値
-        #   3. df_average['wake max']：起床時の心拍数の最大値
-        #   4. df_average['sleep min']：睡眠時の心拍数の最小値
-        #   5. df_average['sleep max']：睡眠時の心拍数の最大値
-        #   6. df_average['sleep temp min']：睡眠時の体温の最小値
-        #   7. df_average['sleep temp var']：睡眠時の体温の分散値
+        average_whole_hr = np.average(tmp_df['value'].values)
+        df_average['whole average'].append(average_whole_hr)
+
+        min_wake_hr = np.min(tmp_df['value'][tmp_df['sleep']==0].values)
+        df_average['wake min'].append(min_wake_hr)
+
+        max_wake_hr = np.max(tmp_df['value'][tmp_df['sleep']==0].values)
+        df_average['wake max'].append(max_wake_hr)
+
+        min_sleep_hr = np.min(tmp_df['value'][tmp_df['sleep']==1].values)
+        df_average['sleep min'].append(min_sleep_hr)
+
+        max_sleep_hr = np.max(tmp_df['value'][tmp_df['sleep']==1].values)
+        df_average['sleep max'].append(max_sleep_hr)
+
+        min_sleep_temp = np.min(tmp_df['temperature'][tmp_df['sleep']==1].values)
+        df_average['sleep temp min'].append(min_sleep_temp)
+
+        var_sleep_temp = np.var(tmp_df['temperature'][tmp_df['sleep']==1].values)
+        df_average['sleep temp var'].append(var_sleep_temp)
         #===ここまでが演習1===
 
         f_date += datetime.timedelta(days=1)
@@ -65,18 +76,16 @@ def Dimension_Reduction_daily_data(daily_data, save_path):
     data_matrix = new_df.values
 
     #=======演習2=======
-    # tsneやumapを用いて、data_matrixを2次元のデータに変換し、X_decompに結果を格納せよ。
-    # また、次元削減されたデータX_decompを可視化せよ
-
+    X_decomp = umap.UMAP(n_components=2).fit_transform(data_matrix)
     np.save(os.path.join(save_path, 'fitbitX'), X_decomp[:,0])
     np.save(os.path.join(save_path, 'fitbitY'), X_decomp[:,1])
 
-    # ここで可視化を実装
-
-    #===ここまでが演習2===
+    for ii, tmp_date in enumerate(df_average['date']):
+        ax.scatter(X_decomp[ii, 0], X_decomp[ii, 1], s=20, label=tmp_date)
 
     plt.tight_layout()
     plt.savefig(os.path.join(save_path, 'dimension_reduction_fig.png'))
+    #===ここまでが演習2===
 
     return df_average
 
@@ -97,16 +106,31 @@ def kmeans_daily_data(df_average, save_path):
     # なお、クラスタリングにはscikit-learnのK-meansを用いること。
     # また、辞書型の変数label_values_indを以下のように定義せよ。
     # label_values_ind = {0:ラベル0のX_decompの値, 1:ラベル1のX_decompの値}
+    kmeans = KMeans(n_clusters = 2)
+    kmeans.fit_predict(X = X_decomp)
+    label_values_ind = {0: [], 1: []}
+    for i in range(X_decomp.shape[0]):
+        if kmeans.labels_[i] == 0:
+            label_values_ind[0].append(X_decomp[i, :])
+        else:
+            label_values_ind[1].append(X_decomp[i, :])
     #===ここまでが演習3===
 
     #=======演習4=======
     # ここで、matplotlibで散布図を作成し、クラスタごとに点の色を変更せよ。
+    gr0 = np.array(label_values_ind[0])
+    gr1 = np.array(label_values_ind[1])
+
+    fig = plt.figure()
+    ax = fig.add_subplot(1,1,1)
+    ax.scatter(gr0[:, 0], gr0[:, 1], color = 'green')
+    ax.scatter(gr1[:, 0], gr1[:, 1], color = 'blue')
 
     # クラスタの重心（クラスタ内の座標値の平均）を計算し、クラスタの重心を散布図上に示せ。
     # また、クラスタ内のデータの平均を求め、図内で可視化せよ。
     for i in label_values_ind:
-        x_ind = 1# x座標の平均
-        y_ind = 1# y座標の平均
+        x_ind = kmeans.cluster_centers_[i][0]# x座標の平均
+        y_ind = kmeans.cluster_centers_[i][1]# y座標の平均
         ax.scatter(x_ind, y_ind, s=50, label='Label-{}'.format(i), color='black')
         avg_list = [] # このリストにデータの平均値を格納する。
         for tmp in df_average:
@@ -169,7 +193,7 @@ def main():
             s = f.read()
         data_collection = json.loads(s)
     
-    halshare = pd.read_csv(os.path.join(file_path, 'fuk002.csv'))
+    halshare = pd.read_csv(os.path.join(file_path, '20220617_lvnsu003.csv'))
     tmp_datetime = [tmp.split('+09')[0] for tmp in halshare['date_measured'].tolist()]
     halshare['date_measured'] = tmp_datetime
     halshare['date_measured'] = pd.to_datetime(halshare['date_measured'])
@@ -187,6 +211,7 @@ def main():
 
     #=======演習5=======
     # ここで、df_averageの結果をcsvファイルに格納
+    pd.DataFrame(df_average).to_csv(os.path.join(analysis_res, 'df_average.csv'))
     #===ここまでが演習5===
 
 if __name__ == '__main__':
